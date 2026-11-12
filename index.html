@@ -22,6 +22,9 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:2rem}
 .card{background:linear-gradient(145deg,#1b1d24,#111217);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
 .avatar{width:76px;height:76px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:radial-gradient(circle,#59451d,#252016);border:2px solid #8d6c2b;color:#ffe8a1;font-size:1.6rem;font-weight:900}
 .card h3{margin:5px 0;font-size:1rem}.tag{font-size:.72rem;color:var(--muted)}
+.cat-photo{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid #806326;margin:0 auto 10px;display:block}
+.contender .cat-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;margin:0 auto 10px}
+.legend-photo{width:100%;max-width:190px;aspect-ratio:1/1;object-fit:cover;border-radius:50%;border:2px solid #8d6c2b;margin:0 auto 12px;display:block}
 .match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:22px 0}
 .contender{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 10px;text-align:center;min-height:160px}
 .contender .avatar{width:90px;height:90px}
@@ -52,7 +55,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <h2>The twelve nominees</h2>
 <p class="lead">Every cat has a place in this story. Meet the original 2025/2026 Golden Paw contestants.</p>
 <div class="grid" id="nominees"></div>
-<p class="notice">Photo portraits can be added later. For now, each nominee has a golden placeholder so nobody is left out.</p>
+<p class="notice">Nine of our nominees now have photo portraits. The remaining cats still have their golden placeholders until we have their pictures.</p>
 </section>
 <section id="vote">
 <h2>The road to the Golden Paw</h2>
@@ -86,7 +89,9 @@ const rounds=[
 {title:"Stage 6 · Grand final",desc:"One final vote crowns the Golden Paw champion.",pairs:[]}
 ];
 let votes=JSON.parse(localStorage.getItem("goldenPawVotes")||"{}"),pairIndex=0;
-function card(name,i){return `<div class="card"><div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div><h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
+const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg"};
+function photo(name,extra=""){return photoFiles[name]?`<img class="cat-photo ${extra}" src="${photoFiles[name]}" alt="${name}">`:`<div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>`}
+function card(name,i){return `<div class="card">${photo(name)}<h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
 document.getElementById("nominees").innerHTML=cats.map(card).join("");
 const legendDetails=[
 {name:"Mimi",date:"9 October 2026",note:"BEST OF ALL TIME",story:"Mimi was the hunter. One day, three mice frightened Grandma, who called out, “Mimi! Mimi!” Mimi came running and took care of all three in one swift move. Everyone loved her, and she always got the most treats. She was also my favourite."},
@@ -95,13 +100,13 @@ const legendDetails=[
 {name:"Djinjigilka",date:"23 June 2026",note:"A beautiful 11-year life"},
 {name:"Pancho",date:"25 December 2023",note:"The first cat · Mimi's father",story:"Pancho was the first cat the family ever welcomed. Grandpa had always said there would be no cat in the house, but Pancho changed everything. Within a week, he and Grandpa had become best friends and went everywhere together. When the family tended their carrots and cabbages, Pancho was the little helper by Grandpa's side. He was lost after being hit by a truck in 2023, but his place as the original family legend remains."}
 ];
-document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card"><div class="avatar">✦</div><h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
+document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card">${photo(cat.name,"legend-photo")}<h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
 let selected={};
 function renderMatch(){
 const p=rounds[0].pairs[pairIndex]; if(!p){document.getElementById("matchArea").innerHTML='<div class="notice">You have completed all six opening matchups in this demo. The later stages will be configured once the bracket is finalized.</div>';return;}
 const [a,b]=p;document.getElementById("stageInfo").innerHTML=`<b>${rounds[0].title}</b><br>${rounds[0].desc}<br><span class="small">Matchup ${pairIndex+1} of 6</span>`;
-document.getElementById("matchArea").innerHTML=`<div class="match"><div class="contender"><div class="avatar">${cats[a].slice(0,2).toUpperCase()}</div><h3>${cats[a]}</h3><button class="${selected[pairIndex]===a?'chosen':''}" onclick="cast(${a})">Vote ${cats[a]}</button></div><div class="vs">VS</div><div class="contender"><div class="avatar">${cats[b].slice(0,2).toUpperCase()}</div><h3>${cats[b]}</h3><button class="${selected[pairIndex]===b?'chosen':''}" onclick="cast(${b})">Vote ${cats[b]}</button></div></div>`;
+document.getElementById("matchArea").innerHTML=`<div class="match"><div class="contender">${photo(cats[a])}<h3>${cats[a]}</h3><button class="${selected[pairIndex]===a?'chosen':''}" onclick="cast(${a})">Vote ${cats[a]}</button></div><div class="vs">VS</div><div class="contender">${photo(cats[b])}<h3>${cats[b]}</h3><button class="${selected[pairIndex]===b?'chosen':''}" onclick="cast(${b})">Vote ${cats[b]}</button></div></div>`;
 document.getElementById("voteStatus").textContent=selected[pairIndex]!==undefined?"Your demo vote is saved on this device.":"Choose your favourite in this matchup.";
 }
 window.cast=i=>{selected[pairIndex]=i;votes[i]=(votes[i]||0)+1;localStorage.setItem("goldenPawVotes",JSON.stringify(votes));renderMatch();};
