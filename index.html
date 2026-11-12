@@ -55,7 +55,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <h2>The twelve nominees</h2>
 <p class="lead">Every cat has a place in this story. Meet the original 2025/2026 Golden Paw contestants.</p>
 <div class="grid" id="nominees"></div>
-<p class="notice">Nine of our nominees now have photo portraits. The remaining cats still have their golden placeholders until we have their pictures.</p>
+<p class="notice">Twelve cats are represented in the awards. Nine nominees have portraits, with more family photos added as they become available.</p>
 </section>
 <section id="vote">
 <h2>The road to the Golden Paw</h2>
@@ -89,7 +89,7 @@ const rounds=[
 {title:"Stage 6 · Grand final",desc:"One final vote crowns the Golden Paw champion.",pairs:[]}
 ];
 let votes=JSON.parse(localStorage.getItem("goldenPawVotes")||"{}"),pairIndex=0;
-const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg"};
+const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg","Chernio":"assets/chernio.jpg","Daisy":"assets/daisy.jpg","Pancho":"assets/pancho.jpg"};
 function photo(name,extra=""){return photoFiles[name]?`<img class="cat-photo ${extra}" src="${photoFiles[name]}" alt="${name}">`:`<div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>`}
 function card(name,i){return `<div class="card">${photo(name)}<h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
 document.getElementById("nominees").innerHTML=cats.map(card).join("");
