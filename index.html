@@ -106,13 +106,40 @@ const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"asse
 "Reni":"assets/reni.jpg"};function photo(name,extra=""){return photoFiles[name]?`<img class="cat-photo ${extra}" src="${photoFiles[name]}" alt="${name}">`:`<div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>`}
 function card(name,i){return `<div class="card">${photo(name)}<h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
 document.getElementById("nominees").innerHTML=cats.map(card).join("");
+
 const legendDetails=[
-{name:"Mimi",date:"9 October 2026",note:"BEST OF ALL TIME",story:"Mimi was the hunter. One day, three mice frightened Grandma, who called out, “Mimi! Mimi!” Mimi came running and took care of all three in one swift move. Everyone loved her, and she always got the most treats. She was also my favourite."},
-{name:"Bubumara",date:"6 November 2026",note:"Forever in our hearts"},
-{name:"Reni",date:"28 May 2025",note:"Forever in our hearts"},
-{name:"Djinjigilka",date:"23 June 2026",note:"A beautiful 11-year life"},
-{name:"Pancho",date:"25 December 2023",note:"The first cat · Mimi's father",story:"Pancho was the first cat the family ever welcomed. Grandpa had always said there would be no cat in the house, but Pancho changed everything. Within a week, he and Grandpa had become best friends and went everywhere together. When the family tended their carrots and cabbages, Pancho was the little helper by Grandpa's side. He was lost after being hit by a truck in 2023, but his place as the original family legend remains."}
+{
+  name:"Mimi",
+  date:"9 October 2026",
+  note:"BEST OF ALL TIME",
+  story:"Mimi was the hunter. One day, three mice frightened Grandma, who called out, “Mimi! Mimi!” Mimi came running and took care of all three in one swift move. Everyone loved her, and she always got the most treats. She was also my favourite."
+},
+{
+  name:"Bubumara",
+  date:"6 November 2026",
+  note:"THE SAVED ONE",
+  story:"Bubumara was found on an abandoned road and given a home. When she arrived, she was so hungry that she ate three medium packets of cat food! From that day on, she became known as the big eater. We will forever remember her story, her appetite, and the second chance she was given."
+},
+{
+  name:"Reni",
+  date:"28 May 2025",
+  note:"THE HEIR",
+  story:"Reni was Mimi's daughter, and just like her mother, she was a natural hunter. She wasn't always the most outgoing cat, but Grandma loved her dearly, saying she was as sweet as Stefani meatloaf. Her name, Reni, means sweet. One day, she caught a huge rat that had been troubling Grandma for a long time. Reni carried on Mimi's legacy in her own way, and she will always have a special place in our memories. Rest in peace, Reni."
+},
+{
+  name:"Djinjigilka",
+  date:"23 June 2026",
+  note:"APPETITE IS BIGGER THAN SHYNESS",
+  story:"Djinjigilka lived for 11 years. She was a shy cat who often hid from us, but whenever food appeared, her personality changed completely! Suddenly, she became much more outgoing. She was Pancho's wife and the mother of Mimi, leaving her own special mark on the family. We will remember her for her gentle, shy nature — and her enormous appetite."
+},
+{
+  name:"Pancho",
+  date:"25 December 2023",
+  note:"THE FIRST CAT · MIMI'S FATHER",
+  story:"Pancho was the first cat the family ever welcomed. Grandpa had always said there would be no cat in the house, but Pancho changed everything. Within a week, he and Grandpa had become best friends and went everywhere together. When the family tended their carrots and cabbages, Pancho was the little helper by Grandpa's side. He was lost after being hit by a truck in 2023, but his place as the original family legend remains."
+}
 ];
+
 document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card">${photo(cat.name,"legend-photo")}<h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
 
