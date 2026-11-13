@@ -101,7 +101,9 @@ const rounds=[
 }
 ];
 let votes={},pairIndex=0;
-const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg","Chernio":"assets/chernio.jpg","Daisy":"assets/daisy.jpg","Pancho":"assets/pancho.jpg"};
+const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg","Chernio":"assets/chernio.jpg","Daisy":"assets/daisy.jpg","Pancho":"assets/pancho.jpg",
+"Djinjigilka":"assets/djinjigilka.jpg",
+"Reni":"assets/reni.jpg"};
 function photo(name,extra=""){return photoFiles[name]?`<img class="cat-photo ${extra}" src="${photoFiles[name]}" alt="${name}">`:`<div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>`}
 function card(name,i){return `<div class="card">${photo(name)}<h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
 document.getElementById("nominees").innerHTML=cats.map(card).join("");
