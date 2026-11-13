@@ -176,7 +176,7 @@ async function renderScores(){
     }))
     .sort((a,b) => b.v-a.v)
     .map(x =>
-      `<div class="row"><b>${x.n}</b><span>${x.v} votes</span></div>`
+      `<div class="row"><b>${x.n}</b><span>${x.v} ${x.v === 1 ? "vote" : "votes"}</span></div>`
     ).join("");
 }
 async function initializeApp() {
