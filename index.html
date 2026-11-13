@@ -55,7 +55,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <h2>The twelve nominees</h2>
 <p class="lead">Every cat has a place in this story. Meet the original 2025/2026 Golden Paw contestants.</p>
 <div class="grid" id="nominees"></div>
-<p class="notice">Twelve cats are represented in the awards. Nine nominees have portraits, with more family photos added as they become available.</p>
+<p class="notice">Twelve cats are represented in the awards. Family portraits celebrate their place in the Golden Paw Awards.</p>
 </section>
 <section id="vote">
 <h2>The road to the Golden Paw</h2>
@@ -68,7 +68,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <p class="small" id="voteStatus"></p>
 </section>
 <section id="leaderboard">
-<h2>Leaderboard</h2><p class="lead">Live totals from submitted Golden Paw Awards votes.</p><div id="scores"></div>
+<h2>Leaderboard</h2><p class="lead">Live totals from all submitted Golden Paw Awards stages.</p><div id="scores"></div>
 </section>
 <section id="legends">
 <h2>The Legends</h2>
@@ -89,12 +89,16 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 const cats=["Delta","Hera","Klyukarkata 1","Klyukarkata 2","Mimi","Bubumara","Daisy","Charlie","Djinjigilka","Lili","Petq","Chernio"];
 const legends=["Mimi","Bubumara","Reni","Djinjigilka","Pancho"];
 const rounds=[
-{title:"Stage 1 · Opening round",desc:"Twelve nominees enter. Six head-to-head matchups begin the journey.",pairs:[[0,1],[2,3],[4,5],[6,7],[8,9],[10,11]]},
-{title:"Stage 2 · First cut",desc:"The six matchup winners and two wildcard picks move forward.",pairs:[]},
-{title:"Stage 3 · Quarterfinal path",desc:"Six contenders remain on the road to the semifinals.",pairs:[]},
-{title:"Stage 4 · Semifinals",desc:"Four contenders. Two places in the final.",pairs:[]},
-{title:"Stage 5 · Finalists",desc:"The finalists are revealed and the anticipation builds.",pairs:[]},
-{title:"Stage 6 · Grand final",desc:"One final vote crowns the Golden Paw champion.",pairs:[]}
+{
+  title:"Stage 1 · Opening round",
+  desc:"The opening round is complete. Eight contenders advance.",
+  pairs:[[0,1],[2,3],[4,5],[6,7],[8,9],[10,11]]
+},
+{
+  title:"Stage 2 · Quarter-Finals",
+  desc:"Eight contenders. Four battles. Only four will advance to the semifinals.",
+  pairs:[[4,3],[1,5],[7,11],[10,9]]
+}
 ];
 let votes={},pairIndex=0;
 const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"assets/lili.jpg","Charlie":"assets/charlie.jpg","Bubumara":"assets/bubumara.jpg","Delta":"assets/delta.jpg","Hera":"assets/hera.jpg","Klyukarkata 2":"assets/klyukarkata_2.jpg","Klyukarkata 1":"assets/klyukarkata_1.jpg","Chernio":"assets/chernio.jpg","Daisy":"assets/daisy.jpg","Pancho":"assets/pancho.jpg"};
@@ -110,53 +114,145 @@ const legendDetails=[
 ];
 document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card">${photo(cat.name,"legend-photo")}<h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
+
 let selected = {};
-function renderMatch(){
-const p=rounds[0].pairs[pairIndex]; if(!p){document.getElementById("matchArea").innerHTML='<div class="notice">You have completed all six opening matchups in this demo. The later stages will be configured once the bracket is finalized.</div>';return;}
-const [a,b]=p;document.getElementById("stageInfo").innerHTML=`<b>${rounds[0].title}</b><br>${rounds[0].desc}<br><span class="small">Matchup ${pairIndex+1} of 6</span>`;
-document.getElementById("matchArea").innerHTML=`<div class="match"><div class="contender">${photo(cats[a])}<h3>${cats[a]}</h3><button class="${selected[pairIndex]===a?'chosen':''}" onclick="cast(${a})">Vote ${cats[a]}</button></div><div class="vs">VS</div><div class="contender">${photo(cats[b])}<h3>${cats[b]}</h3><button class="${selected[pairIndex]===b?'chosen':''}" onclick="cast(${b})">Vote ${cats[b]}</button></div></div>`;
-document.getElementById("voteStatus").textContent=selected[pairIndex]!==undefined?"Your vote is recorded for this matchup.":"Choose your favourite in this matchup.";
-}
-window.cast = async i => {
-  if (selected[pairIndex] !== undefined) return;
+let submitting = false;
 
-  let voterId = localStorage.getItem("goldenPawVoter");
 
-  if (!voterId) {
-    voterId = crypto.randomUUID();
-    localStorage.setItem("goldenPawVoter", voterId);
-  }
+function renderMatch() {
+  const p = rounds[1].pairs[pairIndex];
+  const nextButton = document.getElementById("next");
 
-  document.getElementById("voteStatus").textContent = "Submitting vote...";
-
-  const { error } = await db
-    .from("golden_paw_votes")
-    .insert({
-      matchup: pairIndex,
-      cat_index: i,
-      voter_id: voterId
-    });
-
-  if (error) {
+  if (!p) {
+    document.getElementById("stageInfo").innerHTML =
+      `<b>${rounds[1].title}</b><br>All four Quarter-Final matchups are complete!`;
+    document.getElementById("matchArea").innerHTML =
+      '<div class="notice">The Quarter-Finals are complete! Four cats have earned their places in the semifinals. 🏆</div>';
     document.getElementById("voteStatus").textContent =
-      "Vote not submitted. You may have already voted in this matchup.";
+      "Quarter-Finals completed.";
+    nextButton.style.display = "none";
     return;
   }
 
-  selected[pairIndex] = i;
-  votes[i] = (votes[i] || 0) + 1;
+  nextButton.style.display = "inline-block";
 
-  renderMatch();
-  renderScores();
+  const [a,b] = p;
+  const matchupId = 6 + pairIndex;
+
+  document.getElementById("stageInfo").innerHTML =
+    `<b>${rounds[1].title}</b><br>${rounds[1].desc}<br><span class="small">Matchup ${pairIndex+1} of 4</span>`;
+
+  document.getElementById("matchArea").innerHTML = `
+    <div class="match">
+      <div class="contender">
+        ${photo(cats[a])}
+        <h3>${cats[a]}</h3>
+        <button class="${selected[matchupId]===a?'chosen':''}"
+          onclick="cast(${a})">Vote ${cats[a]}</button>
+      </div>
+      <div class="vs">VS</div>
+      <div class="contender">
+        ${photo(cats[b])}
+        <h3>${cats[b]}</h3>
+        <button class="${selected[matchupId]===b?'chosen':''}"
+          onclick="cast(${b})">Vote ${cats[b]}</button>
+      </div>
+    </div>`;
+
+  document.getElementById("voteStatus").textContent =
+    selected[matchupId] !== undefined
+      ? "Your vote is recorded for this matchup."
+      : "Choose your favourite in this matchup.";
+}
+
+
+window.cast = async i => {
+  const matchupId = 6 + pairIndex;
+  const currentPair = rounds[1].pairs[pairIndex];
+
+  if (!currentPair || !currentPair.includes(i)) return;
+
+  if (submitting || selected[matchupId] !== undefined) return;
+
+  submitting = true;
+
+  const buttons = document.querySelectorAll("#matchArea button");
+  buttons.forEach(button => button.disabled = true);
+
+  document.getElementById("voteStatus").textContent =
+    "Submitting vote...";
+
+  try {
+    let voterId = localStorage.getItem("goldenPawVoter");
+
+    if (!voterId) {
+      voterId = crypto.randomUUID();
+      localStorage.setItem("goldenPawVoter", voterId);
+    }
+
+    const { error } = await db
+      .from("golden_paw_votes")
+      .insert({
+        matchup: matchupId,
+        cat_index: i,
+        voter_id: voterId
+      });
+
+    if (error) {
+      console.error("Vote submission failed:", error);
+
+      document.getElementById("voteStatus").textContent =
+        error.code === "23505"
+          ? "You've already voted in this matchup."
+          : "Something went wrong. Please try again.";
+
+      return;
+    }
+
+    selected[matchupId] = i;
+
+    renderMatch();
+    await renderScores();
+
+  } catch (error) {
+    console.error("Unexpected voting error:", error);
+
+    document.getElementById("voteStatus").textContent =
+      "Connection error. Please try again.";
+
+  } finally {
+  submitting = false;
+
+  document.querySelectorAll("#matchArea button")
+    .forEach(button => button.disabled = false);
+}
 };
-document.getElementById("next").onclick=()=>{if(selected[pairIndex]===undefined){document.getElementById("voteStatus").textContent="Choose a cat before moving on.";return;}if(pairIndex<5){pairIndex++;renderMatch();}else{document.getElementById("matchArea").innerHTML='<div class="notice">All opening matchups completed! This is a demo preview; the next five stages need the confirmed tournament rules.</div>';document.getElementById("stageInfo").textContent="Stage 1 complete";}};
 
-async function renderScores(){
+
+document.getElementById("next").onclick = () => {
+  const matchupId = 6 + pairIndex;
+
+  if (submitting) return;
+
+  if (selected[matchupId] === undefined) {
+    document.getElementById("voteStatus").textContent =
+      "Choose a cat before moving on.";
+    return;
+  }
+
+  pairIndex++;
+  renderMatch();
+};
+
+
+async function renderScores() {
   const { data, error } = await db
     .from("golden_paw_votes")
     .select("cat_index");
 
   if (error) {
+    console.error("Leaderboard error:", error);
+
     document.getElementById("scores").textContent =
       "Could not load leaderboard.";
     return;
@@ -179,32 +275,48 @@ async function renderScores(){
       `<div class="row"><b>${x.n}</b><span>${x.v} ${x.v === 1 ? "vote" : "votes"}</span></div>`
     ).join("");
 }
+
+
 async function initializeApp() {
-  let voterId = localStorage.getItem("goldenPawVoter");
+  try {
+    let voterId = localStorage.getItem("goldenPawVoter");
 
-  if (voterId) {
-    const { data, error } = await db
-      .from("golden_paw_votes")
-      .select("matchup, cat_index")
-      .eq("voter_id", voterId);
+    if (voterId) {
+      const { data, error } = await db
+        .from("golden_paw_votes")
+        .select("matchup, cat_index")
+        .eq("voter_id", voterId)
+        .gte("matchup", 6)
+        .lte("matchup", 9);
 
-    if (!error && data) {
-      data.forEach(vote => {
-        selected[vote.matchup] = vote.cat_index;
-      });
-
-      const nextMatch = rounds[0].pairs.findIndex(
-        (_, i) => selected[i] === undefined
-      );
-
-      pairIndex = nextMatch === -1 ? 5 : nextMatch;
+      if (error) {
+        console.error("Could not restore voting progress:", error);
+      } else if (data) {
+        data.forEach(vote => {
+          selected[vote.matchup] = vote.cat_index;
+        });
+      }
     }
-  }
 
-  renderMatch();
-  await renderScores();
+    const nextMatch = rounds[1].pairs.findIndex(
+      (_,i) => selected[6+i] === undefined
+    );
+
+    pairIndex = nextMatch === -1 ? 4 : nextMatch;
+
+    renderMatch();
+    await renderScores();
+
+  } catch (error) {
+    console.error("Initialization error:", error);
+
+    document.getElementById("voteStatus").textContent =
+      "Could not initialize the voting system.";
+  }
 }
 
+
 initializeApp();
+
 </script>
 </body></html>
