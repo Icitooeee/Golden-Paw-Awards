@@ -602,6 +602,7 @@ function renderMatch() {
     </div>`;
 
   document.getElementById("voteStatus").textContent =
+
     selected[matchupId] !== undefined
       ? "Your vote is recorded for this matchup."
       : "Choose your favourite in this matchup.";
@@ -640,16 +641,19 @@ window.cast = async i => {
         voter_id: voterId
       });
 
-    if (error) {
-      console.error("Vote submission failed:", error);
+   if (error) {
+  console.error("Vote submission failed:", {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    hint: error.hint
+  });
 
-      document.getElementById("voteStatus").textContent =
-        error.code === "23505"
-          ? "You've already voted in this matchup."
-          : "Something went wrong. Please try again.";
+  document.getElementById("voteStatus").textContent =
+    "Voting error: " + error.message;
 
-      return;
-    }
+  return;
+}
 
     selected[matchupId] = i;
 
