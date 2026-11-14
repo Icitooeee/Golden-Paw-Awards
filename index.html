@@ -121,6 +121,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <button data-tab="leaderboard">Leaderboard</button>
 <button data-tab="legends">Legends</button>
 <button data-tab="memories">Memories</button>
+<button data-tab="admin">Admin</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -289,6 +290,49 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
     </p>
   </div>
 </section>
+<section id="admin">
+  <h2>Admin Control Panel</h2>
+  <p class="lead">
+    Private Golden Paw Awards administration.
+  </p>
+
+  <div class="card" id="adminLogin">
+    <h3>Administrator Login</h3>
+
+    <input
+      id="adminEmail"
+      type="email"
+      placeholder="Admin email"
+      autocomplete="username"
+      style="width:100%;padding:12px;margin:8px 0"
+    >
+
+    <input
+      id="adminPassword"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+      style="width:100%;padding:12px;margin:8px 0"
+    >
+
+    <button class="primary" id="adminLoginButton">
+      Log In
+    </button>
+
+    <p class="small" id="adminStatus"></p>
+  </div>
+
+  <div class="card" id="adminControls" style="display:none">
+    <h3>Welcome, Administrator!</h3>
+    <p class="small">You are logged in to the Golden Paw admin panel.</p>
+
+    <button id="adminLogout">Log Out</button>
+
+    <p class="notice" style="margin-top:15px">
+      Bonus vote controls will appear here once the login is verified.
+    </p>
+  </div>
+</section>
 </main>
 <footer>Made with love · The Golden Paw Awards 2025/2026 🐾</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -299,7 +343,60 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
   SUPABASE_URL,
   SUPABASE_KEY
 );
+const ADMIN_USER_ID = "1e7a63db-fbb1-439a-938a-baca77c17741";
 
+async function checkAdminSession() {
+  const { data } = await db.auth.getSession();
+  const user = data.session?.user;
+
+  if (user && user.id === ADMIN_USER_ID) {
+    document.getElementById("adminLogin").style.display = "none";
+    document.getElementById("adminControls").style.display = "block";
+  } else {
+    document.getElementById("adminLogin").style.display = "block";
+    document.getElementById("adminControls").style.display = "none";
+  }
+}
+
+document.getElementById("adminLoginButton").onclick = async () => {
+  const email = document.getElementById("adminEmail").value;
+  const password = document.getElementById("adminPassword").value;
+  const status = document.getElementById("adminStatus");
+
+  status.textContent = "Logging in...";
+
+  const { data, error } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    status.textContent = "Login failed. Check your email and password.";
+    return;
+  }
+
+  if (data.user.id !== ADMIN_USER_ID) {
+    await db.auth.signOut();
+    status.textContent = "This account is not authorised.";
+    return;
+  }
+
+  document.getElementById("adminPassword").value = "";
+  status.textContent = "Login successful!";
+  await checkAdminSession();
+};
+
+document.getElementById("adminLogout").onclick = async () => {
+  await db.auth.signOut();
+  document.getElementById("adminStatus").textContent = "Logged out.";
+  await checkAdminSession();
+};
+
+db.auth.onAuthStateChange(() => {
+  checkAdminSession();
+});
+
+checkAdminSession();
 const cats=["Delta","Hera","Klyukarkata 1","Klyukarkata 2","Mimi","Bubumara","Daisy","Charlie","Djinjigilka","Lili","Petq","Chernio"];
 const legends=["Mimi","Bubumara","Reni","Djinjigilka","Pancho"];
 const rounds=[
