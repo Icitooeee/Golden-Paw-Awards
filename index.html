@@ -19,7 +19,23 @@ section{display:none}section.active{display:block}
 h2{font-family:Georgia,serif;color:var(--gold2);font-size:2rem}
 .lead{color:var(--muted);line-height:1.6}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-.card{background:linear-gradient(145deg,#1b1d24,#111217);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
+
+.card{
+  background:linear-gradient(145deg,#1b1d24,#111217);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  text-align:center;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+
+.card:hover,
+.card:active{
+  transform:translateY(-4px);
+  border-color:var(--gold);
+  box-shadow:0 0 18px #e8bd5533;
+}
+
 .avatar{width:76px;height:76px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:radial-gradient(circle,#59451d,#252016);border:2px solid #8d6c2b;color:#ffe8a1;font-size:1.6rem;font-weight:900}
 .card h3{margin:5px 0;font-size:1rem}.tag{font-size:.72rem;color:var(--muted)}
 .cat-photo{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid #806326;margin:0 auto 10px;display:block}
