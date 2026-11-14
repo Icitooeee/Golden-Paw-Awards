@@ -35,6 +35,76 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:2rem}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:12px 4px}
 footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 .small{font-size:.85rem;color:var(--muted)}
+/* HOME PAGE */
+.home-hero{
+  text-align:center;
+  padding:35px 15px 25px;
+  background:linear-gradient(145deg,#211b10,#111217);
+  border:1px solid #806326;
+  border-radius:22px;
+  margin:20px 0 30px;
+}
+.home-hero h2{
+  font-size:clamp(2rem,6vw,3.2rem);
+  margin:10px 0;
+}
+.home-hero .lead{
+  max-width:650px;
+  margin:12px auto;
+}
+.home-kicker{
+  color:var(--gold);
+  font-size:.75rem;
+  letter-spacing:.22em;
+  font-weight:800;
+}
+.home-actions{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:22px;
+}
+.home-actions button{
+  padding:12px 20px;
+}
+.family-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px;
+}
+.family-card{
+  background:linear-gradient(145deg,#1b1d24,#111217);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  text-align:center;
+  transition:transform .2s,border-color .2s;
+}
+.family-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--gold);
+}
+.family-card img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  border-radius:11px;
+  border:1px solid #806326;
+}
+.family-card h3{
+  margin:10px 0 4px;
+}
+.family-fact{
+  color:var(--gold);
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.home-section-title{
+  margin-top:35px;
+}
 @media(max-width:520px){.match{gap:6px}.contender{padding:14px 7px}.contender .avatar{width:68px;height:68px}.vs{font-size:1rem}}
 </style>
 </head>
@@ -45,16 +115,144 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <div class="sub">12 CATS · 6 STAGES · ONE GOLDEN PAW</div>
 </header>
 <nav>
-<button class="active" data-tab="home">The nominees</button>
+<button class="active" data-tab="home">Home</button>
+<button data-tab="nominees">Nominees</button>
 <button data-tab="vote">Vote</button>
 <button data-tab="leaderboard">Leaderboard</button>
 <button data-tab="legends">Legends</button>
+<button data-tab="memories">Memories</button>
 </nav>
 <main>
 <section id="home" class="active">
+
+<div class="home-hero">
+  <div class="home-kicker">WELCOME TO THE 2025 / 2026 AWARDS</div>
+  <h2>THE GOLDEN PAW</h2>
+  <p class="lead">
+    Twelve cats. Countless memories. One extraordinary legacy.
+  </p>
+  <p class="lead">
+    Welcome to the Golden Paw Awards! Meet the cats,
+    discover their personalities and decide who deserves your vote.
+  </p>
+
+  <div class="home-actions">
+    <button class="primary"
+      onclick="document.querySelector('nav button[data-tab=vote]').click()">
+      Cast Your Vote
+    </button>
+    <button
+      onclick="document.querySelector('nav button[data-tab=nominees]').click()">
+      Meet the Nominees
+    </button>
+  </div>
+</div>
+
+<h2 class="home-section-title">Meet the Golden Paw Family</h2>
+<p class="lead">
+  Fourteen cats, each with their own personality.
+  Twelve are competing in the awards, while Reni and Pancho
+  remain treasured members of the family.
+</p>
+
+<div class="family-grid">
+
+  <div class="family-card">
+    <img src="assets/hera_home.jpg" alt="Hera">
+    <h3>Hera</h3>
+    <div class="family-fact">The Healer</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/mimi_home.jpg" alt="Mimi">
+    <h3>Mimi</h3>
+    <div class="family-fact">The Hunter</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/petq_home.jpg" alt="Petq">
+    <h3>Petq</h3>
+    <div class="family-fact">Playful</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/charlie_home.jpg" alt="Charlie">
+    <h3>Charlie</h3>
+    <div class="family-fact">Cookie</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/reni_home.jpg" alt="Reni">
+    <h3>Reni</h3>
+    <div class="family-fact">Gentle</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/bubumara_home.jpg" alt="Bubumara">
+    <h3>Bubumara</h3>
+    <div class="family-fact">Large Appetite</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/djinjigilka_home.jpg" alt="Djinjigilka">
+    <h3>Djinjigilka</h3>
+    <div class="family-fact">Shy</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/lili_home.jpg" alt="Lili">
+    <h3>Lili</h3>
+    <div class="family-fact">The Tough One</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/pancho_home.jpg" alt="Pancho">
+    <h3>Pancho</h3>
+    <div class="family-fact">Kind-Hearted</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/delta_home.jpg" alt="Delta">
+    <h3>Delta</h3>
+    <div class="family-fact">No Limits</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/klyukarkata_1_home.jpg" alt="Klyukarkata 1">
+    <h3>Klyukarkata 1</h3>
+    <div class="family-fact">Good Example</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/klyukarkata_2_home.jpg" alt="Klyukarkata 2">
+    <h3>Klyukarkata 2</h3>
+    <div class="family-fact">The One to Follow</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/chernio_home.jpg" alt="Chernio">
+    <h3>Chernio</h3>
+    <div class="family-fact">Be Yourself</div>
+  </div>
+
+  <div class="family-card">
+    <img src="assets/daisy_home.jpg" alt="Daisy">
+    <h3>Daisy</h3>
+    <div class="family-fact">Kind</div>
+  </div>
+
+</div>
+
+<div class="notice" style="margin-top:25px">
+  Ready to decide? Explore the nominees and choose your favourites
+  in the Golden Paw Awards!
+</div>
+
+</section>
+<section id="nominees">
 <h2>The twelve nominees</h2>
 <p class="lead">Every cat has a place in this story. Meet the original 2025/2026 Golden Paw contestants.</p>
-<div class="grid" id="nominees"></div>
+<div class="grid" id="nomineeGrid"></div>
 <p class="notice">Twelve cats are represented in the awards. Family portraits celebrate their place in the Golden Paw Awards.</p>
 </section>
 <section id="vote">
@@ -74,6 +272,22 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <h2>The Legends</h2>
 <p class="lead">Forever remembered. Their place in this family is bigger than any award.</p>
 <div class="grid" id="legendGrid"></div>
+</section>
+<section id="memories">
+  <h2>Memories</h2>
+  <p class="lead">
+    A collection of photographs, videos, funny moments and stories
+    celebrating the Golden Paw family.
+  </p>
+
+  <div class="home-hero">
+    <div class="home-kicker">THE FAMILY ARCHIVE</div>
+    <h2>Coming Soon</h2>
+    <p class="lead">
+      Special moments deserve a place of their own.
+      The Golden Paw Memories collection is being prepared.
+    </p>
+  </div>
 </section>
 </main>
 <footer>Made with love · The Golden Paw Awards 2025/2026 🐾</footer>
@@ -105,7 +319,7 @@ const photoFiles={"Petq":"assets/petq.jpg","Mimi":"assets/mimi.jpg","Lili":"asse
 "Djinjigilka":"assets/djinjigilka.jpg",
 "Reni":"assets/reni.jpg"};function photo(name,extra=""){return photoFiles[name]?`<img class="cat-photo ${extra}" src="${photoFiles[name]}" alt="${name}">`:`<div class="avatar">${name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>`}
 function card(name,i){return `<div class="card">${photo(name)}<h3>${name}</h3><div class="tag">NOMINEE #${i+1}</div></div>`}
-document.getElementById("nominees").innerHTML=cats.map(card).join("");
+document.getElementById("nomineeGrid").innerHTML=cats.map(card).join("");
 
 const legendDetails=[
 {
