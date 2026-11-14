@@ -33,6 +33,31 @@ h2{font-family:Georgia,serif;color:var(--gold2);font-size:2rem}
 .vs{color:var(--gold);font-family:Georgia,serif;font-size:1.3rem}
 .notice{background:#211d13;border:1px solid #5d4820;border-radius:12px;padding:13px;color:#e9d59e;line-height:1.5}
 .row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:12px 4px}
+
+/* SEMIFINALISTS — LEADERBOARD HIGHLIGHT */
+
+.row.still-competing {
+  background: linear-gradient(100deg, #332916, #191711);
+  border: 1px solid #806326;
+  border-radius: 12px;
+  padding: 13px 12px;
+  margin: 8px 0;
+  box-shadow: 0 0 14px #e8bd5515;
+}
+
+.competition-tag {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #59451d;
+  border: 1px solid var(--gold);
+  color: var(--gold2);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
 footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 .small{font-size:.85rem;color:var(--muted)}
 /* HOME PAGE */
@@ -962,6 +987,14 @@ async function renderScores() {
       (bonusVotes[vote.cat_index] || 0) + 1;
   });
 
+
+  const stillCompeting = new Set([
+    "Mimi",
+    "Hera",
+    "Lili",
+    "Charlie"
+  ]);
+
   document.getElementById("scores").innerHTML =
     cats.map((name, i) => {
       const regular = regularVotes[i] || 0;
@@ -975,17 +1008,30 @@ async function renderScores() {
       };
     })
     .sort((a, b) => b.total - a.total)
-    .map(cat => `
-      <div class="row">
-        <div>
-          <b>${cat.name}</b>
-          <div class="small">
-            ${cat.regular} regular + ${cat.bonus} bonus
+    .map(cat => {
+      const isCompeting = stillCompeting.has(cat.name);
+
+      return `
+        <div class="row ${isCompeting ? "still-competing" : ""}">
+          <div>
+            <b>${cat.name}</b>
+
+            ${
+              isCompeting
+              ? '<div class="competition-tag">🐾 STILL COMPETING</div>'
+              : ''
+            }
+
+            <div class="small">
+              ${cat.regular} regular + ${cat.bonus} bonus
+            </div>
           </div>
+
+          <b>${cat.total} ${cat.total === 1 ? "vote" : "votes"}</b>
         </div>
-        <b>${cat.total} ${cat.total === 1 ? "vote" : "votes"}</b>
-      </div>
-    `).join("");
+      `;
+    }).join("");
+
 }
 
 
