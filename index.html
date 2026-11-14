@@ -557,15 +557,24 @@ async function initializeApp() {
         .gte("matchup", 6)
         .lte("matchup", 9);
 
-      if (error) {
-        console.error("Could not restore voting progress:", error);
-      } else if (data) {
-        data.forEach(vote => {
-          selected[vote.matchup] = vote.cat_index;
-        });
-      }
-    }
+  if (error) {
+  console.error("Could not restore voting progress:", error);
 
+  document.getElementById("voteStatus").textContent =
+    "Could not check your previous votes. Please refresh the page.";
+
+  document.getElementById("matchArea").innerHTML =
+    '<div class="notice">Voting is temporarily unavailable while we check your previous votes.</div>';
+
+  document.getElementById("next").disabled = true;
+  return;
+}
+
+if (data) {
+  data.forEach(vote => {
+    selected[vote.matchup] = vote.cat_index;
+  });
+}
     const nextMatch = rounds[1].pairs.findIndex(
       (_,i) => selected[6+i] === undefined
     );
