@@ -106,6 +106,73 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
   margin-top:35px;
 }
 @media(max-width:520px){.match{gap:6px}.contender{padding:14px 7px}.contender .avatar{width:68px;height:68px}.vs{font-size:1rem}}
+
+/* GOLDEN PAW VOTING ANIMATIONS */
+
+.contender {
+  position: relative;
+  transition: transform .25s ease, border-color .25s ease,
+              box-shadow .25s ease;
+}
+
+.contender.preview-selected {
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 24px #e8bd5545;
+  animation: voteBounce .45s ease;
+}
+
+.contender.chosen-card {
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 18px #e8bd5533;
+}
+
+.vote-speech {
+  background: linear-gradient(135deg,#f5d77e,#b77b22);
+  color: #17130a;
+  padding: 11px;
+  border-radius: 12px;
+  margin: 12px 0;
+  font-weight: 900;
+  font-size: .85rem;
+  animation: bubbleIn .35s ease;
+}
+
+.paw-burst {
+  font-size: 1.5rem;
+  letter-spacing: 8px;
+  margin: 8px 0;
+  animation: pawFloat .9s ease infinite alternate;
+}
+
+.confirm-vote {
+  width: 100%;
+  margin-top: 8px;
+}
+
+@keyframes voteBounce {
+  0% {transform: scale(1)}
+  40% {transform: scale(1.045)}
+  100% {transform: scale(1)}
+}
+
+@keyframes bubbleIn {
+  from {opacity:0; transform:translateY(12px) scale(.9)}
+  to {opacity:1; transform:translateY(0) scale(1)}
+}
+
+@keyframes pawFloat {
+  from {transform:translateY(3px); opacity:.65}
+  to {transform:translateY(-5px); opacity:1}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contender, .contender.preview-selected,
+  .vote-speech, .paw-burst {
+    animation: none;
+    transition: none;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -118,6 +185,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <button class="active" data-tab="home">Home</button>
 <button data-tab="nominees">Nominees</button>
 <button data-tab="vote">Vote</button>
+<button data-tab="semifinals">Semifinals</button>
 <button data-tab="leaderboard">Leaderboard</button>
 <button data-tab="legends">Legends</button>
 <button data-tab="memories">Memories</button>
@@ -265,6 +333,26 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 </div>
 <p class="small" id="voteStatus"></p>
 </section>
+
+<section id="semifinals">
+  <h2>The Semifinals</h2>
+  <p class="lead">
+    Four contenders. Two battles. Only two will reach the Grand Final.
+  </p>
+
+  <div class="notice" id="semiStageInfo">
+    Stage 3 · Semifinals
+  </div>
+
+  <div id="semiMatchArea"></div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+    <button class="primary" id="semiNext">Next matchup</button>
+  </div>
+
+  <p class="small" id="semiVoteStatus"></p>
+</section>
+
 <section id="leaderboard">
 <h2>Leaderboard</h2><p class="lead">Live totals from all submitted Golden Paw Awards stages.</p><div id="scores"></div>
 </section>
@@ -356,21 +444,75 @@ const legendDetails=[
 document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card">${photo(cat.name,"legend-photo")}<h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
 
+
 let selected = {};
 let submitting = false;
 
+let pendingChoice = null;
+let pendingPhrase = "";
+
+const votePhrases = {
+  "Hera": [
+    "The crown belongs to me! 👑",
+    "I'm just getting started!",
+    "Vote for the future!"
+  ],
+  "Lili": [
+    "I fought my way here!",
+    "Never underestimate me!",
+    "The hunter deserves a crown!"
+  ],
+  "Mimi": [
+    "I deserve it more!",
+    "Remember who the legend is!",
+    "This crown belongs to me! 👑"
+  ],
+  "Charlie": [
+    "Don't underestimate me!",
+    "The next generation is here!",
+    "Vote for me! 🐾"
+  ]
+};
+
+
+
+
+window.previewVote = function(i) {
+  const matchupId = 6 + pairIndex;
+  const currentPair = rounds[1].pairs[pairIndex];
+
+  if (!currentPair || !currentPair.includes(i)) return;
+  if (submitting || selected[matchupId] !== undefined) return;
+
+  pendingChoice = i;
+
+  const phrases = votePhrases[cats[i]] || [
+    "Please vote for me! 🐾",
+    "I deserve the Golden Paw!"
+  ];
+
+  pendingPhrase = phrases[
+    Math.floor(Math.random() * phrases.length)
+  ];
+
+  renderMatch();
+};
 
 function renderMatch() {
   const p = rounds[1].pairs[pairIndex];
   const nextButton = document.getElementById("next");
+  const matchArea = document.getElementById("matchArea");
 
   if (!p) {
     document.getElementById("stageInfo").innerHTML =
       `<b>${rounds[1].title}</b><br>All four Quarter-Final matchups are complete!`;
-    document.getElementById("matchArea").innerHTML =
-      '<div class="notice">The Quarter-Finals are complete! Four cats have earned their places in the semifinals. 🏆</div>';
+
+    matchArea.innerHTML =
+      '<div class="notice">The Quarter-Finals are complete! 🏆</div>';
+
     document.getElementById("voteStatus").textContent =
       "Quarter-Finals completed.";
+
     nextButton.style.display = "none";
     return;
   }
@@ -379,33 +521,78 @@ function renderMatch() {
 
   const [a,b] = p;
   const matchupId = 6 + pairIndex;
+  const recorded = selected[matchupId];
 
   document.getElementById("stageInfo").innerHTML =
-    `<b>${rounds[1].title}</b><br>${rounds[1].desc}<br><span class="small">Matchup ${pairIndex+1} of 4</span>`;
+    `<b>${rounds[1].title}</b><br>${rounds[1].desc}<br>
+    <span class="small">Matchup ${pairIndex+1} of 4</span>`;
 
-  document.getElementById("matchArea").innerHTML = `
+  function contenderMarkup(i) {
+    const isRecorded = recorded === i;
+    const isPreview = pendingChoice === i && recorded === undefined;
+
+    return `
+      <div class="contender
+        ${isPreview ? "preview-selected" : ""}
+        ${isRecorded ? "chosen-card" : ""}">
+
+        ${photo(cats[i])}
+        <h3>${cats[i]}</h3>
+
+        ${
+          isRecorded
+          ? `<div class="vote-speech">YOUR VOTE IS RECORDED! 🐾</div>`
+          : recorded !== undefined
+          ? `<div class="tag">Voting closed</div>`
+          : `
+            <button
+              onclick="previewVote(${i})"
+              ${isPreview ? "disabled" : ""}>
+              ${isPreview ? "Selected ✓" : "Choose " + cats[i]}
+            </button>
+
+            ${
+              isPreview
+              ? `
+                <div class="vote-speech">
+                  "${pendingPhrase}"
+                </div>
+
+                <div class="paw-burst">🐾 ✨ 🐾</div>
+
+                <button class="primary confirm-vote"
+                  onclick="cast(${i})">
+                  Confirm my vote
+                </button>
+              `
+              : ""
+            }
+          `
+        }
+      </div>
+    `;
+  }
+
+  matchArea.innerHTML = `
     <div class="match">
-      <div class="contender">
-        ${photo(cats[a])}
-        <h3>${cats[a]}</h3>
-        <button class="${selected[matchupId]===a?'chosen':''}"
-          onclick="cast(${a})">Vote ${cats[a]}</button>
-      </div>
+      ${contenderMarkup(a)}
       <div class="vs">VS</div>
-      <div class="contender">
-        ${photo(cats[b])}
-        <h3>${cats[b]}</h3>
-        <button class="${selected[matchupId]===b?'chosen':''}"
-          onclick="cast(${b})">Vote ${cats[b]}</button>
-      </div>
-    </div>`;
+      ${contenderMarkup(b)}
+    </div>
+  `;
 
-  document.getElementById("voteStatus").textContent =
-
-    selected[matchupId] !== undefined
-      ? "Your vote is recorded for this matchup."
-      : "Choose your favourite in this matchup.";
+  if (recorded !== undefined) {
+    document.getElementById("voteStatus").textContent =
+      "Your vote is recorded for this matchup.";
+  } else if (pendingChoice !== null) {
+    document.getElementById("voteStatus").textContent =
+      "Your cat is selected! Confirm your vote when ready.";
+  } else {
+    document.getElementById("voteStatus").textContent =
+      "Choose your favourite in this matchup.";
+  }
 }
+
 
 
 window.cast = async i => {
@@ -414,7 +601,8 @@ window.cast = async i => {
 
   if (!currentPair || !currentPair.includes(i)) return;
 
-  if (submitting || selected[matchupId] !== undefined) return;
+if (submitting || selected[matchupId] !== undefined) return;
+if (pendingChoice !== i) return;
 
   submitting = true;
 
@@ -456,7 +644,10 @@ window.cast = async i => {
 
     selected[matchupId] = i;
 
-    renderMatch();
+pendingChoice = null;
+pendingPhrase = "";
+
+renderMatch();
     await renderScores();
 
   } catch (error) {
@@ -466,13 +657,266 @@ window.cast = async i => {
       "Connection error. Please try again.";
 
   } finally {
-  submitting = false;
+    submitting = false;
 
-  document.querySelectorAll("#matchArea button")
-    .forEach(button => button.disabled = false);
-}
+    if (selected[matchupId] === undefined) {
+      document.querySelectorAll("#matchArea button")
+        .forEach(button => button.disabled = false);
+    }
+  }
 };
 
+
+// ======================================
+// GOLDEN PAW — SEMIFINAL VOTING SYSTEM
+// Matchup IDs: 10 and 11
+// ======================================
+
+const semifinalPairs = [
+  [9, 1], // Lili vs Hera
+  [4, 7]  // Mimi vs Charlie
+];
+
+let semiSelected = {};
+let semiPairIndex = 0;
+let semiPendingChoice = null;
+let semiPendingPhrase = "";
+let semiSubmitting = false;
+
+function renderSemifinalMatch() {
+  const pair = semifinalPairs[semiPairIndex];
+  const nextButton = document.getElementById("semiNext");
+  const area = document.getElementById("semiMatchArea");
+
+  if (!pair) {
+    document.getElementById("semiStageInfo").innerHTML =
+      "<b>Stage 3 · Semifinals</b>";
+
+    area.innerHTML =
+      '<div class="notice">You have completed both semifinal matchups! 🏆</div>';
+
+    document.getElementById("semiVoteStatus").textContent =
+      "Your semifinal votes are complete.";
+
+    nextButton.style.display = "none";
+    return;
+  }
+
+  nextButton.style.display = "inline-block";
+
+  const [a, b] = pair;
+  const matchupId = 10 + semiPairIndex;
+  const recorded = semiSelected[matchupId];
+
+  document.getElementById("semiStageInfo").innerHTML =
+    `<b>Stage 3 · Semifinals</b><br>
+     Matchup ${semiPairIndex + 1} of 2`;
+
+  function contenderMarkup(i) {
+    const isRecorded = recorded === i;
+    const isPreview =
+      semiPendingChoice === i && recorded === undefined;
+
+    return `
+      <div class="contender
+        ${isPreview ? "preview-selected" : ""}
+        ${isRecorded ? "chosen-card" : ""}">
+
+        ${photo(cats[i])}
+        <h3>${cats[i]}</h3>
+
+        ${
+          isRecorded
+          ? '<div class="vote-speech">YOUR VOTE IS RECORDED! 🐾</div>'
+          : recorded !== undefined
+          ? '<div class="tag">Voting closed</div>'
+          : `
+            <button
+              onclick="previewSemifinalVote(${i})"
+              ${isPreview ? "disabled" : ""}>
+              ${isPreview ? "Selected ✓" : "Choose " + cats[i]}
+            </button>
+
+            ${
+              isPreview
+              ? `
+                <div class="vote-speech">
+                  "${semiPendingPhrase}"
+                </div>
+
+                <div class="paw-burst">🐾 ✨ 🐾</div>
+
+                <button class="primary confirm-vote"
+                  onclick="castSemifinal(${i})">
+                  Confirm my vote
+                </button>
+              `
+              : ""
+            }
+          `
+        }
+      </div>
+    `;
+  }
+
+  area.innerHTML = `
+    <div class="match">
+      ${contenderMarkup(a)}
+      <div class="vs">VS</div>
+      ${contenderMarkup(b)}
+    </div>
+  `;
+
+  if (recorded !== undefined) {
+    document.getElementById("semiVoteStatus").textContent =
+      "Your vote is recorded for this matchup.";
+  } else if (semiPendingChoice !== null) {
+    document.getElementById("semiVoteStatus").textContent =
+      "Your choice is selected! Confirm when ready.";
+  } else {
+    document.getElementById("semiVoteStatus").textContent =
+      "Choose your favourite in this matchup.";
+  }
+}
+
+window.previewSemifinalVote = function(i) {
+  const pair = semifinalPairs[semiPairIndex];
+  const matchupId = 10 + semiPairIndex;
+
+  if (!pair || !pair.includes(i)) return;
+  if (semiSubmitting || semiSelected[matchupId] !== undefined) return;
+
+  semiPendingChoice = i;
+
+  const phrases = votePhrases[cats[i]] || [
+    "Please vote for me! 🐾",
+    "I deserve the Golden Paw!"
+  ];
+
+  semiPendingPhrase =
+    phrases[Math.floor(Math.random() * phrases.length)];
+
+  renderSemifinalMatch();
+};
+
+window.castSemifinal = async function(i) {
+  const pair = semifinalPairs[semiPairIndex];
+  const matchupId = 10 + semiPairIndex;
+
+  if (!pair || !pair.includes(i)) return;
+  if (semiSubmitting || semiSelected[matchupId] !== undefined) return;
+  if (semiPendingChoice !== i) return;
+
+  semiSubmitting = true;
+
+  document.querySelectorAll("#semiMatchArea button")
+    .forEach(button => button.disabled = true);
+
+  document.getElementById("semiVoteStatus").textContent =
+    "Submitting semifinal vote...";
+
+  try {
+    let voterId = localStorage.getItem("goldenPawVoter");
+
+    if (!voterId) {
+      voterId = crypto.randomUUID();
+      localStorage.setItem("goldenPawVoter", voterId);
+    }
+
+    const { error } = await db
+      .from("golden_paw_votes")
+      .insert({
+        matchup: matchupId,
+        cat_index: i,
+        voter_id: voterId
+      });
+
+    if (error) {
+      console.error("Semifinal vote failed:", error);
+
+      document.getElementById("semiVoteStatus").textContent =
+        "Voting error: " + error.message;
+
+      return;
+    }
+
+    semiSelected[matchupId] = i;
+    semiPendingChoice = null;
+    semiPendingPhrase = "";
+
+    renderSemifinalMatch();
+    await renderScores();
+
+  } catch (error) {
+    console.error("Semifinal connection error:", error);
+
+    document.getElementById("semiVoteStatus").textContent =
+      "Connection error. Please try again.";
+
+  } finally {
+    semiSubmitting = false;
+
+    if (semiSelected[matchupId] === undefined) {
+      document.querySelectorAll("#semiMatchArea button")
+        .forEach(button => button.disabled = false);
+    }
+  }
+};
+
+document.getElementById("semiNext").onclick = () => {
+  const matchupId = 10 + semiPairIndex;
+
+  if (semiSubmitting) return;
+
+  if (semiSelected[matchupId] === undefined) {
+    document.getElementById("semiVoteStatus").textContent =
+      "Choose a cat before moving on.";
+    return;
+  }
+
+  semiPendingChoice = null;
+  semiPendingPhrase = "";
+  semiPairIndex++;
+
+  renderSemifinalMatch();
+};
+
+async function initializeSemifinals() {
+  try {
+    const voterId = localStorage.getItem("goldenPawVoter");
+
+    if (voterId) {
+      const { data, error } = await db
+        .from("golden_paw_votes")
+        .select("matchup, cat_index")
+        .eq("voter_id", voterId)
+        .gte("matchup", 10)
+        .lte("matchup", 11);
+
+      if (error) throw error;
+
+      if (data) {
+        data.forEach(vote => {
+          semiSelected[vote.matchup] = vote.cat_index;
+        });
+      }
+    }
+
+    const nextMatch = semifinalPairs.findIndex(
+      (_, i) => semiSelected[10 + i] === undefined
+    );
+
+    semiPairIndex = nextMatch === -1 ? 2 : nextMatch;
+
+    renderSemifinalMatch();
+
+  } catch (error) {
+    console.error("Could not initialize semifinals:", error);
+
+    document.getElementById("semiVoteStatus").textContent =
+      "Could not load your semifinal voting progress.";
+  }
+}
 
 document.getElementById("next").onclick = () => {
   const matchupId = 6 + pairIndex;
@@ -484,7 +928,8 @@ document.getElementById("next").onclick = () => {
       "Choose a cat before moving on.";
     return;
   }
-
+pendingChoice = null;
+pendingPhrase = "";
   pairIndex++;
   renderMatch();
 };
@@ -596,6 +1041,7 @@ async function initializeApp() {
 }
 
 initializeApp();
+initializeSemifinals();
 
 
 </script>
