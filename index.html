@@ -328,9 +328,48 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 
     <button id="adminLogout">Log Out</button>
 
-    <p class="notice" style="margin-top:15px">
-      Bonus vote controls will appear here once the login is verified.
-    </p>
+   <div style="margin-top:20px;text-align:left">
+  <h3>Award a Bonus Vote</h3>
+
+  <label for="bonusCat">Competition winner</label>
+  <select id="bonusCat" style="width:100%;padding:12px;margin:8px 0">
+    <option value="">Choose a cat</option>
+    <option value="0">Delta</option>
+    <option value="1">Hera</option>
+    <option value="2">Klyukarkata 1</option>
+    <option value="3">Klyukarkata 2</option>
+    <option value="4">Mimi</option>
+    <option value="5">Bubumara</option>
+    <option value="6">Daisy</option>
+    <option value="7">Charlie</option>
+    <option value="8">Djinjigilka</option>
+    <option value="9">Lili</option>
+    <option value="10">Petq</option>
+    <option value="11">Chernio</option>
+  </select>
+
+  <label for="bonusPlatform">Competition platform</label>
+  <select id="bonusPlatform" style="width:100%;padding:12px;margin:8px 0">
+    <option value="TikTok">TikTok</option>
+    <option value="Instagram">Instagram</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <label for="bonusCompetition">Competition name</label>
+  <input
+    id="bonusCompetition"
+    type="text"
+    maxlength="120"
+    placeholder="e.g. Mimi vs Hera — TikTok"
+    style="width:100%;padding:12px;margin:8px 0"
+  >
+
+  <button class="primary" id="awardBonusButton" style="margin-top:12px">
+    + Award 1 Bonus Vote
+  </button>
+
+  <p class="small" id="bonusStatus"></p>
+</div>
   </div>
 </section>
 </main>
@@ -392,12 +431,76 @@ document.getElementById("adminLogout").onclick = async () => {
   await checkAdminSession();
 };
 
-db.auth.onAuthStateChange(() => {
-  checkAdminSession();
+db.auth.onAuthStateChange((event, session) => {
+  const user = session?.user;
+
+  if (user && user.id === ADMIN_USER_ID) {
+    document.getElementById("adminLogin").style.display = "none";
+    document.getElementById("adminControls").style.display = "block";
+  } else {
+    document.getElementById("adminLogin").style.display = "block";
+    document.getElementById("adminControls").style.display = "none";
+  }
 });
 
 checkAdminSession();
 const cats=["Delta","Hera","Klyukarkata 1","Klyukarkata 2","Mimi","Bubumara","Daisy","Charlie","Djinjigilka","Lili","Petq","Chernio"];
+
+document.getElementById("awardBonusButton").onclick = async () => {
+  const button = document.getElementById("awardBonusButton");
+  const status = document.getElementById("bonusStatus");
+
+  const catIndex = document.getElementById("bonusCat").value;
+  const platform = document.getElementById("bonusPlatform").value;
+  const competition = document.getElementById("bonusCompetition").value.trim();
+
+  if (catIndex === "" || !competition) {
+    status.textContent = "Choose a winner and enter a competition name.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Submitting bonus vote...";
+
+  try {
+    const { data: sessionData } = await db.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (!user || user.id !== ADMIN_USER_ID) {
+      status.textContent = "Administrator access required.";
+      return;
+    }
+
+    const { error } = await db
+      .from("golden_paw_bonus_votes")
+      .insert({
+        cat_index: Number(catIndex),
+        platform: platform,
+        competition_name: competition
+      });
+
+    if (error) {
+      console.error("Bonus vote error:", error);
+      status.textContent = "Could not award vote. Check database permissions.";
+      return;
+    }
+
+    status.textContent =
+      "Bonus vote successfully awarded to " + cats[Number(catIndex)] + "!";
+
+    document.getElementById("bonusCat").value = "";
+    document.getElementById("bonusCompetition").value = "";
+
+    await renderScores();
+
+  } catch (error) {
+    console.error(error);
+    status.textContent = "Connection error. Please try again.";
+  } finally {
+    button.disabled = false;
+  }
+};
+
 const legends=["Mimi","Bubumara","Reni","Djinjigilka","Pancho"];
 const rounds=[
 {
@@ -584,36 +687,59 @@ document.getElementById("next").onclick = () => {
 };
 
 
+
 async function renderScores() {
-  const { data, error } = await db
-    .from("golden_paw_votes")
-    .select("cat_index");
+  const [regularResult, bonusResult] = await Promise.all([
+    db.from("golden_paw_votes").select("cat_index"),
+    db.from("golden_paw_bonus_votes").select("cat_index")
+  ]);
 
-  if (error) {
-    console.error("Leaderboard error:", error);
-
+  if (regularResult.error || bonusResult.error) {
+    console.error("Leaderboard error:", regularResult.error || bonusResult.error);
     document.getElementById("scores").textContent =
       "Could not load leaderboard.";
     return;
   }
 
-  votes = {};
+  const regularVotes = {};
+  const bonusVotes = {};
 
-  data.forEach(vote => {
-    votes[vote.cat_index] =
-      (votes[vote.cat_index] || 0) + 1;
+  regularResult.data.forEach(vote => {
+    regularVotes[vote.cat_index] =
+      (regularVotes[vote.cat_index] || 0) + 1;
+  });
+
+  bonusResult.data.forEach(vote => {
+    bonusVotes[vote.cat_index] =
+      (bonusVotes[vote.cat_index] || 0) + 1;
   });
 
   document.getElementById("scores").innerHTML =
-    cats.map((n,i) => ({
-      n,
-      v: votes[i] || 0
-    }))
-    .sort((a,b) => b.v-a.v)
-    .map(x =>
-      `<div class="row"><b>${x.n}</b><span>${x.v} ${x.v === 1 ? "vote" : "votes"}</span></div>`
-    ).join("");
+    cats.map((name, i) => {
+      const regular = regularVotes[i] || 0;
+      const bonus = bonusVotes[i] || 0;
+
+      return {
+        name,
+        regular,
+        bonus,
+        total: regular + bonus
+      };
+    })
+    .sort((a, b) => b.total - a.total)
+    .map(cat => `
+      <div class="row">
+        <div>
+          <b>${cat.name}</b>
+          <div class="small">
+            ${cat.regular} regular + ${cat.bonus} bonus
+          </div>
+        </div>
+        <b>${cat.total} ${cat.total === 1 ? "vote" : "votes"}</b>
+      </div>
+    `).join("");
 }
+
 
 
 async function initializeApp() {
