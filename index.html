@@ -214,6 +214,90 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
   }
 }
 
+/* GOLDEN PAW — MEMORIES FLOW */
+
+.memory-flow {
+  display: grid;
+  gap: 22px;
+  margin: 28px 0;
+  position: relative;
+}
+
+.memory-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1fr;
+  gap: 20px;
+  align-items: center;
+  background: linear-gradient(145deg, #1b1d24, #111217);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  transition: border-color .25s, box-shadow .25s, transform .25s;
+}
+
+.memory-card:hover,
+.memory-card:active {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px #e8bd5533;
+  transform: translateY(-3px);
+}
+
+.memory-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 13px;
+  border: 1px solid #806326;
+}
+
+.memory-number {
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.memory-card h3 {
+  color: var(--gold2);
+  font-family: Georgia, serif;
+  font-size: 1.4rem;
+  margin: 8px 0;
+}
+
+.memory-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.memory-card details {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.memory-card summary {
+  color: var(--gold);
+  font-weight: 800;
+  cursor: pointer;
+  padding: 5px 0;
+}
+
+.memory-card details[open] summary {
+  margin-bottom: 8px;
+}
+
+@media(max-width:600px) {
+  .memory-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .memory-card img {
+    aspect-ratio: 4 / 3;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -402,21 +486,25 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <p class="lead">Forever remembered. Their place in this family is bigger than any award.</p>
 <div class="grid" id="legendGrid"></div>
 </section>
+
 <section id="memories">
   <h2>Memories</h2>
+
   <p class="lead">
-    A collection of photographs, videos, funny moments and stories
-    celebrating the Golden Paw family.
+    Every photograph holds a moment. Every moment has a story.
+    Welcome to the Golden Paw family archive.
   </p>
 
   <div class="home-hero">
     <div class="home-kicker">THE FAMILY ARCHIVE</div>
-    <h2>Coming Soon</h2>
+    <h2>Moments That Stay Forever</h2>
     <p class="lead">
-      Special moments deserve a place of their own.
-      The Golden Paw Memories collection is being prepared.
+      From little adventures to unforgettable memories,
+      this is where the story of our family lives.
     </p>
   </div>
+
+  <div class="memory-flow" id="memoryFlow"></div>
 </section>
 </main>
 <footer>Made with love · The Golden Paw Awards 2025/2026 🐾</footer>
@@ -483,6 +571,52 @@ const legendDetails=[
 ];
 
 document.getElementById("legendGrid").innerHTML=legendDetails.map((cat)=>`<div class="card">${photo(cat.name,"legend-photo")}<h3>${cat.name}</h3><div class="tag">${cat.note}</div><p class="small" style="margin:10px 0 0">Passed away</p><b style="color:var(--gold2)">${cat.date}</b>${cat.story?`<p class="small" style="line-height:1.6;text-align:left;margin-top:14px">${cat.story}</p>`:""}</div>`).join("");
+
+// ======================================
+// GOLDEN PAW — MEMORIES PHOTO FLOW
+// ======================================
+
+const memoryPhotos = Array.from(
+  { length: 16 },
+  (_, i) => ({
+    number: i + 1,
+    src: `assets/memories/memory_${String(i + 1).padStart(2, "0")}.jpg`
+  })
+);
+
+document.getElementById("memoryFlow").innerHTML =
+  memoryPhotos.map(memory => `
+    <article class="memory-card">
+
+      <img
+        src="${memory.src}"
+        alt="Golden Paw family memory ${memory.number}"
+        loading="lazy"
+      >
+
+      <div>
+        <div class="memory-number">
+          FAMILY ARCHIVE · MEMORY ${String(memory.number).padStart(2, "0")}
+        </div>
+
+        <h3>A Moment to Remember</h3>
+
+        <p>
+          Every little moment is part of our family's story.
+        </p>
+
+        <details>
+          <summary>Discover this memory</summary>
+          <p>
+            The story behind this photograph will be added
+            as we explore our memories together.
+          </p>
+        </details>
+      </div>
+
+    </article>
+  `).join("");
+
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
 
 
