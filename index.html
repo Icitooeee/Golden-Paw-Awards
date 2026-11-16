@@ -297,7 +297,35 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
     aspect-ratio: 4 / 3;
   }
 }
+/* Final-stage entrance animations */
+.final-stage .contender {
+  animation: finalEntrance 0.65s ease both;
+}
 
+.final-stage .contender:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.final-stage .contender:nth-child(3) {
+  animation-delay: 0.22s;
+}
+
+@keyframes finalEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-stage .contender {
+    animation: none;
+  }
+}
 </style>
 </head>
 <body>
@@ -311,6 +339,8 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <button data-tab="nominees">Nominees</button>
 <button data-tab="vote">Vote</button>
 <button data-tab="semifinals">Semifinals</button>
+<button data-tab="thirdplace">Third Place</button>
+<button data-tab="grandfinal">Grand Final</button>
 <button data-tab="leaderboard">Leaderboard</button>
 <button data-tab="legends">Legends</button>
 <button data-tab="memories">Memories</button>
@@ -459,6 +489,7 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 <p class="small" id="voteStatus"></p>
 </section>
 
+
 <section id="semifinals">
   <h2>The Semifinals</h2>
   <p class="lead">
@@ -477,6 +508,25 @@ footer{text-align:center;color:#777;padding:25px;font-size:.8rem}
 
   <p class="small" id="semiVoteStatus"></p>
 </section>
+
+<section id="thirdplace">
+  <h2>The Third-Place Match</h2>
+  <p class="lead">Aunt vs Nephew. One final battle for the bronze medal.</p>
+  <div id="thirdPlaceMatchArea"></div>
+  <p class="small" id="thirdPlaceVoteStatus"></p>
+  <h2>Third-Place Leaderboard</h2>
+  <div id="thirdPlaceScores"></div>
+</section>
+
+<section id="grandfinal">
+  <h2>The Grand Final</h2>
+  <p class="lead">The Future vs The Past. Only one can claim the Golden Paw.</p>
+  <div id="grandFinalMatchArea"></div>
+  <p class="small" id="grandFinalVoteStatus"></p>
+  <h2>Grand Final Leaderboard</h2>
+  <div id="grandFinalScores"></div>
+</section>
+
 
 <section id="leaderboard">
 <h2>Leaderboard</h2><p class="lead">Live totals from all submitted Golden Paw Awards stages.</p><div id="scores"></div>
@@ -617,9 +667,19 @@ document.getElementById("memoryFlow").innerHTML =
     </article>
   `).join("");
 
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button,main section").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.add("active");if(b.dataset.tab==="leaderboard")renderScores();});
+document.querySelectorAll("nav button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("nav button,main section")
+      .forEach(x => x.classList.remove("active"));
 
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
 
+    if (b.dataset.tab === "leaderboard") renderScores();
+    if (b.dataset.tab === "thirdplace") renderFinalScores("thirdplace");
+    if (b.dataset.tab === "grandfinal") renderFinalScores("grandfinal");
+  };
+});
 let selected = {};
 let submitting = false;
 
@@ -749,7 +809,7 @@ function renderMatch() {
   }
 
   matchArea.innerHTML = `
-    <div class="match">
+  <div class="match">
       ${contenderMarkup(a)}
       <div class="vs">VS</div>
       ${contenderMarkup(b)}
@@ -1111,11 +1171,290 @@ pendingPhrase = "";
 
 
 
+// ======================================
+// GOLDEN PAW — THIRD PLACE & GRAND FINAL
+// Matchup IDs: 12 and 13
+// ======================================
+
+const finalStages = {
+  thirdplace: {
+    matchup: 12,
+    area: "thirdPlaceMatchArea",
+    status: "thirdPlaceVoteStatus",
+    scores: "thirdPlaceScores",
+    title: "Third-Place Match",
+    symbol: "🥉",
+    left: {
+      index: 9,
+      name: "Lili",
+      image: "assets/final_lili.jpg",
+      quote: "I fought with my sister. Now I'm ready to crush my nephew. Vote for me!"
+    },
+    right: {
+      index: 7,
+      name: "Charlie",
+      image: "assets/final_charlie.jpg",
+      quote: "Yeah, just vote for me. You already know I'm better than Lili."
+    }
+  },
+
+  grandfinal: {
+    matchup: 13,
+    area: "grandFinalMatchArea",
+    status: "grandFinalVoteStatus",
+    scores: "grandFinalScores",
+    title: "Grand Final",
+    symbol: "👑",
+    left: {
+      index: 1,
+      name: "Hera",
+      image: "assets/final_hera.jpg",
+      quote: "I'm new here, but already dominating. If you want to vote right, I'm all open!"
+    },
+    right: {
+      index: 4,
+      name: "Mimi",
+      image: "assets/final_mimi.jpg",
+      quote: "I'm the one you should vote for. You like legends, don't you?"
+    }
+  }
+};
+
+const finalState = {
+  thirdplace: { selected: null, pending: null, submitting: false },
+  grandfinal: { selected: null, pending: null, submitting: false }
+};
+
+function renderFinalStage(key) {
+  const stage = finalStages[key];
+  const state = finalState[key];
+  const area = document.getElementById(stage.area);
+
+  function contender(cat) {
+    const recorded = state.selected === cat.index;
+    const preview = state.pending === cat.index && state.selected === null;
+
+    return `
+      <div class="contender
+        ${preview ? "preview-selected" : ""}
+        ${recorded ? "chosen-card" : ""}">
+
+        <img class="cat-photo"
+          src="${cat.image}"
+          alt="${cat.name}">
+
+        <h3>${cat.name}</h3>
+
+        <p class="small">${cat.quote}</p>
+
+        ${
+          recorded
+          ? '<div class="vote-speech">YOUR VOTE IS RECORDED! 🐾</div>'
+          : state.selected !== null
+          ? '<div class="tag">Voting closed</div>'
+          : `
+            <button
+              onclick="previewFinalVote('${key}', ${cat.index})"
+              ${preview ? "disabled" : ""}>
+              ${preview ? "Selected ✓" : "Choose " + cat.name}
+            </button>
+
+            ${
+              preview
+              ? `
+                <div class="vote-speech">Confirm your choice!</div>
+                <div class="paw-burst">🐾 ✨ 🐾</div>
+                <button class="primary confirm-vote"
+                  onclick="castFinalVote('${key}', ${cat.index})">
+                  Confirm my vote
+                </button>
+              `
+              : ""
+            }
+          `
+        }
+      </div>
+    `;
+  }
+
+  area.innerHTML = `
+  <div class="match final-stage">
+      ${contender(stage.left)}
+      <div class="vs">${stage.symbol}</div>
+      ${contender(stage.right)}
+    </div>
+  `;
+
+  document.getElementById(stage.status).textContent =
+    state.selected !== null
+      ? "Your vote is recorded for this matchup."
+      : state.pending !== null
+      ? "Your choice is selected! Confirm when ready."
+      : "Choose your favourite in this matchup.";
+}
+
+window.previewFinalVote = function(key, catIndex) {
+  const stage = finalStages[key];
+  const state = finalState[key];
+
+  if (state.submitting || state.selected !== null) return;
+
+  if (
+    catIndex !== stage.left.index &&
+    catIndex !== stage.right.index
+  ) return;
+
+  state.pending = catIndex;
+  renderFinalStage(key);
+};
+
+window.castFinalVote = async function(key, catIndex) {
+  const stage = finalStages[key];
+  const state = finalState[key];
+
+  if (state.submitting || state.selected !== null) return;
+  if (state.pending !== catIndex) return;
+
+  state.submitting = true;
+
+  document.getElementById(stage.status).textContent =
+    "Submitting your vote...";
+
+  document.querySelectorAll(`#${stage.area} button`)
+    .forEach(button => button.disabled = true);
+
+  try {
+    let voterId = localStorage.getItem("goldenPawVoter");
+
+    if (!voterId) {
+      voterId = crypto.randomUUID();
+      localStorage.setItem("goldenPawVoter", voterId);
+    }
+
+    const { error } = await db
+      .from("golden_paw_votes")
+      .insert({
+        matchup: stage.matchup,
+        cat_index: catIndex,
+        voter_id: voterId
+      });
+
+    if (error) {
+      console.error("Final-stage vote failed:", error);
+
+      document.getElementById(stage.status).textContent =
+        "Voting error: " + error.message;
+
+      return;
+    }
+
+    state.selected = catIndex;
+    state.pending = null;
+
+    renderFinalStage(key);
+    await renderFinalScores(key);
+
+  } catch (error) {
+    console.error("Final-stage connection error:", error);
+
+    document.getElementById(stage.status).textContent =
+      "Connection error. Please try again.";
+
+  } finally {
+    state.submitting = false;
+
+    if (state.selected === null) {
+      document.querySelectorAll(`#${stage.area} button`)
+        .forEach(button => button.disabled = false);
+    }
+  }
+};
+
+async function renderFinalScores(key) {
+  const stage = finalStages[key];
+
+  const { data, error } = await db
+    .from("golden_paw_votes")
+    .select("cat_index")
+    .eq("matchup", stage.matchup);
+
+  if (error) {
+    console.error("Final leaderboard error:", error);
+    document.getElementById(stage.scores).textContent =
+      "Could not load this leaderboard.";
+    return;
+  }
+
+  const totals = {};
+
+  data.forEach(vote => {
+    totals[vote.cat_index] = (totals[vote.cat_index] || 0) + 1;
+  });
+
+  document.getElementById(stage.scores).innerHTML =
+    [stage.left, stage.right].map(cat => `
+      <div class="row">
+        <b>${cat.name}</b>
+        <b>${totals[cat.index] || 0}
+          ${(totals[cat.index] || 0) === 1 ? "vote" : "votes"}
+        </b>
+      </div>
+    `).join("");
+}
+
+async function initializeFinalStages() {
+  try {
+    const voterId = localStorage.getItem("goldenPawVoter");
+
+    if (voterId) {
+      const { data, error } = await db
+        .from("golden_paw_votes")
+        .select("matchup, cat_index")
+        .eq("voter_id", voterId)
+        .gte("matchup", 12)
+        .lte("matchup", 13);
+
+      if (error) throw error;
+
+      data.forEach(vote => {
+        if (vote.matchup === 12) {
+          finalState.thirdplace.selected = vote.cat_index;
+        }
+
+        if (vote.matchup === 13) {
+          finalState.grandfinal.selected = vote.cat_index;
+        }
+      });
+    }
+
+    renderFinalStage("thirdplace");
+    renderFinalStage("grandfinal");
+
+    await Promise.all([
+      renderFinalScores("thirdplace"),
+      renderFinalScores("grandfinal")
+    ]);
+
+  } catch (error) {
+    console.error("Could not initialize final stages:", error);
+
+    document.getElementById("thirdPlaceVoteStatus").textContent =
+      "Could not load final-stage voting progress.";
+
+    document.getElementById("grandFinalVoteStatus").textContent =
+      "Could not load final-stage voting progress.";
+  }
+}
+
 async function renderScores() {
-  const [regularResult, bonusResult] = await Promise.all([
-    db.from("golden_paw_votes").select("cat_index"),
-    db.from("golden_paw_bonus_votes").select("cat_index")
-  ]);
+ const [regularResult, bonusResult] = await Promise.all([
+  db.from("golden_paw_votes")
+    .select("cat_index")
+    .lte("matchup", 11),
+
+  db.from("golden_paw_bonus_votes")
+    .select("cat_index")
+]);
 
   if (regularResult.error || bonusResult.error) {
     console.error("Leaderboard error:", regularResult.error || bonusResult.error);
@@ -1238,6 +1577,7 @@ async function initializeApp() {
 
 initializeApp();
 initializeSemifinals();
+initializeFinalStages();
 
 
 </script>
